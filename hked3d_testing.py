@@ -21,4 +21,16 @@ ax = fig.add_subplot(111, projection="3d")
 for height in heights:
     ax.scatter(xs,ys,height,depthshade=0,color="grey",alpha=0.2,s=0.5)
 
+hs = [hk_hh]*n_per_ring
+
+xs = xs[:len(xs)]
+ys = ys[:len(ys)]
+hs = hs[:len(hs)]
+
+xs.append(0)
+ys.append(0)
+hs.append(0)
+
+ax.plot_trisurf(xs,ys,hs)
+
 plt.show()
