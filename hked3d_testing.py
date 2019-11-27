@@ -9,11 +9,6 @@ n_per_ring = 400
 hk_r = 20
 hk_hh = 20
 
-thetas = np.linspace(0,2*np.pi,n_per_ring)
-heights = np.linspace(-hk_hh,hk_hh,n_rings)
-
-xs = [hk_r*np.cos(theta) for theta in thetas]
-ys = [hk_r*np.sin(theta) for theta in thetas]
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection="3d")
@@ -21,9 +16,6 @@ ax.set_xlim(-hk_r,hk_r)
 ax.set_ylim(-hk_r,hk_r)
 ax.set_zlim(-hk_hh,hk_hh)
 
-# Plot each ring individually
-for height in heights:
-    ax.scatter(xs,ys,height,depthshade=0,color="grey",alpha=0.2,s=0.5)
 
 def length(v):
     return np.sqrt(np.dot(v,v))
@@ -31,38 +23,51 @@ def length(v):
 def angle(v1,v2):
     return np.acos(np.dot(v1,v2) / (length(v1) * length(v2)))
 
+def generate_cone(vtx,vtx_dir):
+    cone_scale = 5 
+    cone_spine = cone_scale*vtx_dir
+    # Make a new vector not equal to vtx_dir
+    not_cone_spine = np.array([1,0,0])
+    if (vtx_dir == not_cone_spine).all():
+        not_cone_spine = np.array([0,1,0])
+
+    # Make normalised vector perpendicular to vtx_dir
+    n1 = np.cross(cone_spine,not_cone_spine)
+    n1 = n1/length(n1)
+    n2 = np.cross(cone_spine,n1)
+    n2 = n2/length(n2)
+
+    # Angles to make points on the cone edge for
+    n = 50
+    t = np.linspace(0,cone_scale,n)
+    theta = np.linspace(0,2 * np.pi,n)
+    t, theta = np.meshgrid(t, theta)
+    R = 10
+    R = np.linspace(0,R,n)
+    # Generate coordinates for surface
+    cone = [vtx[i] + cone_spine[i] * t + R *
+                np.sin(theta) * n1[i] + R * np.cos(theta) * n2[i] for i in [0, 1, 2]]
+    return cone
+
 # Vertex information
-vtx = np.array([0,0,0])
+vtx = np.array([5,9,-4])
+vtx_dir = np.array([-1,-2,2])
+vtx_dir = vtx_dir/length(vtx_dir)
+cone = generate_cone(vtx, vtx_dir)
+ax.plot_surface(*cone,alpha=0.5,color="dodgerblue")
 
-# Direction
-vtx_dir = np.array([1,0,0])
-cone_scale = 5 
-cone_spine = cone_scale*vtx_dir
+# Colour PMTs based on how far from points in the cone they are (slow)
+pmt_thetas = np.linspace(0,2*np.pi,n_per_ring)
+pmt_heights = np.linspace(-hk_hh,hk_hh,n_rings)
+
+pmt_xs = [hk_r*np.cos(theta) for theta in pmt_thetas]
+pmt_ys = [hk_r*np.sin(theta) for theta in pmt_thetas]
+
+# Plot each ring individually
+for height in pmt_heights:
+    ax.scatter(pmt_xs,pmt_ys,height,depthshade=0,color="grey",alpha=0.2,s=0.5)
+
 # vtx_angle = angle(vtx_dir,[1,0,0])
-
-# Make a new vector not equal to vtx_dir
-not_cone_spine = np.array([1,0,0])
-if (vtx_dir == not_cone_spine).all():
-    not_cone_spine = np.array([0,1,0])
-
-# Make normalised vector perpendicular to vtx_dir
-n1 = np.cross(cone_spine,not_cone_spine)
-n1 = n1/length(n1)
-n2 = np.cross(cone_spine,n1)
-n2 = n2/length(n2)
-
-# Angles to make points on the cone edge for
-n = 50
-t = np.linspace(0,cone_scale,n)
-theta = np.linspace(0,2 * np.pi,n)
-t, theta = np.meshgrid(t, theta)
-R = 10
-R = np.linspace(0,R,n)
-# Generate coordinates for surface
-cone_face = [vtx[i] + cone_spine[i] * t + R *
-            np.sin(theta) * n1[i] + R * np.cos(theta) * n2[i] for i in [0, 1, 2]]
-
-ax.plot_surface(*cone_face,alpha=0.5,color="dodgerblue")
 
 # # Line equation to find interaction of vtx with edge of detector
 # m_xy = math.tan(vtx_angle)
