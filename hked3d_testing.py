@@ -23,28 +23,28 @@ def angle(v1,v2):
     return np.acos(np.dot(v1,v2) / (length(v1) * length(v2)))
 
 def generate_cone(vtx,vtx_dir,theta_ch):
-    cone_scale = 5 
+    cone_scale = 20 
     cone_spine = cone_scale*vtx_dir
+    cone_r = cone_scale*np.tan(np.deg2rad(thet_ch))
     # Make a new vector not equal to vtx_dir
     not_cone_spine = np.array([1,0,0])
     if (vtx_dir == not_cone_spine).all():
         not_cone_spine = np.array([0,1,0])
 
     # Make normalised vector perpendicular to vtx_dir
-    n1 = np.cross(cone_spine,not_cone_spine)
+    n1 = np.cross(vtx_dir,not_cone_spine)
     n1 = n1/length(n1)
-    n2 = np.cross(cone_spine,n1)
-    n2 = n2/length(n2)
+    n2 = np.cross(vtx_dir,n1)
+    # n2 = n2/length(n2)
 
     # Angles to make points on the cone edge for
-    n = 10
+    n = 100
     t = np.linspace(0,cone_scale,n)
     theta = np.linspace(0,2 * np.pi,n)
     t, theta = np.meshgrid(t, theta)
-    R = 10
-    R = np.linspace(0,R,n)
+    R = np.linspace(0,cone_r,n)
     # Generate coordinates for surface
-    cone = [vtx[i] + cone_spine[i] * t + R *
+    cone = [vtx[i] + vtx_dir[i] * t + R *
                 np.sin(theta) * n1[i] + R * np.cos(theta) * n2[i] for i in [0, 1, 2]]
     return cone
 
@@ -52,7 +52,7 @@ def generate_cone(vtx,vtx_dir,theta_ch):
 vtx = np.array([5,9,-4])
 vtx_dir = np.array([-1,-2,2])
 vtx_dir = vtx_dir/length(vtx_dir)
-thet_ch = 20
+thet_ch = 30 # deg
 cone = generate_cone(vtx, vtx_dir,thet_ch)
 ax.plot_surface(*cone,alpha=0.5,color="dodgerblue")
 
@@ -78,18 +78,18 @@ pmt_vtxs = [[x,y,z] for x,y,z in zip(pmt_xs,pmt_ys,pmt_zs)]
 cone = [a.ravel() for a in cone]
 cone_vtxs = [[x,y,z] for x,y,z in zip(*cone)]
 
-pmt_min_dxs =[]
-for pmt_vtx in pmt_vtxs:
-    distances = []
-    for cone_vtx in cone_vtxs:
-        dx = cone_vtx[0] - pmt_vtx[0]
-        dy = cone_vtx[1] - pmt_vtx[1]
-        dz = cone_vtx[2] - pmt_vtx[2]
-        distances.append(np.sqrt(dx*dx+dy*dy+dz*dz))
-    pmt_min_dxs.append(min(distances))
+# pmt_min_dxs =[]
+# for pmt_vtx in pmt_vtxs:
+#     distances = []
+#     for cone_vtx in cone_vtxs:
+#         dx = cone_vtx[0] - pmt_vtx[0]
+#         dy = cone_vtx[1] - pmt_vtx[1]
+#         dz = cone_vtx[2] - pmt_vtx[2]
+#         distances.append(np.sqrt(dx*dx+dy*dy+dz*dz))
+#     pmt_min_dxs.append(min(distances))
 
-print(min(pmt_min_dxs))
-print(max(pmt_min_dxs))
+# print(min(pmt_min_dxs))
+# print(max(pmt_min_dxs))
 
 ax.scatter(pmt_xs,pmt_ys,pmt_zs,depthshade=0,color="grey",alpha=0.2,s=0.5)
 
