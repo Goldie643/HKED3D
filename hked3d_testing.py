@@ -16,14 +16,13 @@ ax.set_xlim(-hk_r,hk_r)
 ax.set_ylim(-hk_r,hk_r)
 ax.set_zlim(-hk_hh,hk_hh)
 
-
 def length(v):
     return np.sqrt(np.dot(v,v))
 
 def angle(v1,v2):
     return np.acos(np.dot(v1,v2) / (length(v1) * length(v2)))
 
-def generate_cone(vtx,vtx_dir):
+def generate_cone(vtx,vtx_dir,theta_ch):
     cone_scale = 5 
     cone_spine = cone_scale*vtx_dir
     # Make a new vector not equal to vtx_dir
@@ -38,7 +37,7 @@ def generate_cone(vtx,vtx_dir):
     n2 = n2/length(n2)
 
     # Angles to make points on the cone edge for
-    n = 50
+    n = 10
     t = np.linspace(0,cone_scale,n)
     theta = np.linspace(0,2 * np.pi,n)
     t, theta = np.meshgrid(t, theta)
@@ -53,19 +52,46 @@ def generate_cone(vtx,vtx_dir):
 vtx = np.array([5,9,-4])
 vtx_dir = np.array([-1,-2,2])
 vtx_dir = vtx_dir/length(vtx_dir)
-cone = generate_cone(vtx, vtx_dir)
+thet_ch = 20
+cone = generate_cone(vtx, vtx_dir,thet_ch)
 ax.plot_surface(*cone,alpha=0.5,color="dodgerblue")
 
 # Colour PMTs based on how far from points in the cone they are (slow)
-pmt_thetas = np.linspace(0,2*np.pi,n_per_ring)
-pmt_heights = np.linspace(-hk_hh,hk_hh,n_rings)
+ring_thetas = np.linspace(0,2*np.pi,n_per_ring)
+ring_heights = np.linspace(-hk_hh,hk_hh,n_rings)
 
-pmt_xs = [hk_r*np.cos(theta) for theta in pmt_thetas]
-pmt_ys = [hk_r*np.sin(theta) for theta in pmt_thetas]
+ring_xs = [hk_r*np.cos(theta) for theta in ring_thetas]
+ring_ys = [hk_r*np.sin(theta) for theta in ring_thetas]
 
-# Plot each ring individually
-for height in pmt_heights:
-    ax.scatter(pmt_xs,pmt_ys,height,depthshade=0,color="grey",alpha=0.2,s=0.5)
+pmt_xs =[]
+pmt_ys =[]
+pmt_zs =[]
+# Add each ring
+for height in ring_heights:
+    pmt_xs.extend(ring_xs)
+    pmt_ys.extend(ring_ys)
+    pmt_zs.extend([height]*n_per_ring)
+
+# Get list of vertexes
+pmt_vtxs = [[x,y,z] for x,y,z in zip(pmt_xs,pmt_ys,pmt_zs)]
+
+cone = [a.ravel() for a in cone]
+cone_vtxs = [[x,y,z] for x,y,z in zip(*cone)]
+
+pmt_min_dxs =[]
+for pmt_vtx in pmt_vtxs:
+    distances = []
+    for cone_vtx in cone_vtxs:
+        dx = cone_vtx[0] - pmt_vtx[0]
+        dy = cone_vtx[1] - pmt_vtx[1]
+        dz = cone_vtx[2] - pmt_vtx[2]
+        distances.append(np.sqrt(dx*dx+dy*dy+dz*dz))
+    pmt_min_dxs.append(min(distances))
+
+print(min(pmt_min_dxs))
+print(max(pmt_min_dxs))
+
+ax.scatter(pmt_xs,pmt_ys,pmt_zs,depthshade=0,color="grey",alpha=0.2,s=0.5)
 
 # vtx_angle = angle(vtx_dir,[1,0,0])
 
