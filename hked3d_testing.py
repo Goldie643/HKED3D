@@ -52,29 +52,17 @@ n2 = np.cross(cone_spine,n1)
 n2 = n2/length(n2)
 
 # Angles to make points on the cone edge for
-theta = np.linspace(0, 2 * np.pi, 50)
+n = 50
+t = np.linspace(0,cone_scale,n)
+theta = np.linspace(0,2 * np.pi,n)
+t, theta = np.meshgrid(t, theta)
 R = 10
+R = np.linspace(0,R,n)
 # Generate coordinates for surface
-cone_face = [vtx[i] + cone_spine[i] * cone_scale + R *
+cone_face = [vtx[i] + cone_spine[i] * t + R *
             np.sin(theta) * n1[i] + R * np.cos(theta) * n2[i] for i in [0, 1, 2]]
 
-# cone = [np.append(cone_pt,x) for cone_pt,x in zip(cone_face,vtx)]
-
-# For tri surface, need to define triangles of vtx,cone_face_i,cone_face_i+1
-cone = []
-
-# Go through each dimension
-for i,axis in enumerate(cone_face):
-    # Each value in each dimension
-    axis_values = []
-    for j,x in enumerate(axis):
-        axis_values.append(vtx[i])
-        axis_values.append(x)
-    cone.append(axis_values)
-
-# ax.plot_trisurf(cone_xs,cone_ys,cone_zs)
-# ax.plot_trisurf(*cone)
-ax.plot(*cone)
+ax.plot_surface(*cone_face,alpha=0.5,color="dodgerblue")
 
 # # Line equation to find interaction of vtx with edge of detector
 # m_xy = math.tan(vtx_angle)
@@ -99,7 +87,6 @@ ax.plot(*cone)
 # h_1 = length(vtx_wall_xy)*math.tan(thet_h_wall)
 
 # ax.plot([vtx[0],x_1],[vtx[1],x_1],[vtx[0],h_1])
-
 
 # Energy (testing)
 bse = 50 # MeV
